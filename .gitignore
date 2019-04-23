@@ -3,3 +3,5 @@ qemu
 Raspberry-PI-SD-Installer-OS-X-master
 qemu-master
 rpi3-firmware.zip
+gcc-linaro-7.4.1-2019.02-i686_aarch64-elf
+gcc-linaro-7.4.1-2019.02-x86_64_aarch64-elf

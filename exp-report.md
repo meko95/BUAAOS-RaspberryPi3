@@ -17,18 +17,24 @@
 - tutorials
 	https://jsandler18.github.io/
 	https://github.com/s-matyukevich/raspberry-pi-os
-	https://github.com/bztsrc/raspi3-tutorial
+	
 
 
 ## 实验报告
 
 ### Lab0 - 实验环境搭建
-- host操作系统：Ubuntu Linux，~~Win10(useless)~~, both using Parallels Desktop
-- 安装gcc交叉编译器
-  - 试一下：gcc hello.c -o hello, ./hello
-  - good！
-- 硬件仿真器
-  - win系统可以用kernel8.img，mac必须自行编译了。__路径不能有中文。__以下git clong获得qemu源代码。
+- host操作系统：Ubuntu Linux，~~Win10(useless)~~, using Parallels Desktop
+- 安装linaro内核编译器，应该可以在linux环境下运行。
+	这里必须选择bare-metal（裸金属），因为我们将在小派上自行建立一个os，而不是利用现成的任何一个os。选binaries之后会有不同的操作系统对应的资源，mingw32是win的，还有Linux的i686和x86_64。可以在这两个平台上支持。
+  
+  - 否则下载gcc自行编译一个交叉编译器，在编译gcc的时候发生了很多bug……说是没有gmp, mpfr, mpc。但是我都下完了之后还是报没有……(而且也用--with-gmp=/usr/bin/.../lib这样的命令行参数标明了) 
+  
+  - 再或者，群里有人说可以利用LLVM（mac如果安装xcode或者command line tools已内置），对clang添加参数--target=aarch64-none-elf即可完成编译，但仍需下载binutils编译，configure时添加参数--target=aarch64-none-elf。
+  
+    这两步理论上完成了，但是在clang编译的时候，如果加上target参数会报stdio找不到。我觉得可能是binutils编译的时候没有改全局变量。
+- 硬件仿真器qemu
+  
+  - 自行编译了。__路径不能有中文。__以下git clong获得qemu源代码。
 ```shell
 git clone https://github.com/qemu/qemu.git
 cd qemu
@@ -40,8 +46,10 @@ make -jX
 ​	可以用这个命令试一下好了没，会输出System started!并进入回显模式。
 `qemu-system-aarch64 -M raspi3 -serial stdio -kernel kernel8.img`
 
-- 安装minicom
+- 安装minicom，用于连接小派
   - sudo apt install minicom
+
+
 
 ### Lab1 - boot
 
@@ -52,11 +60,31 @@ make -jX
 System start!
 
 ##### 实物player
-- 把sd卡插入读卡器
-- 复制5个文件
-- 把sd卡插入小派
-- 小派连上pc，using minicom
-- 无反应
+- 烧写树莓派**官方给的镜像**的步骤
+
+  1. 格式化sd卡，一般不需要操作
+
+  2. 下载树莓派官方镜像
+
+  3. 用Etcher把镜像烧到sd卡上
+
+  4. 在sd卡上config.txt最后加一句enable_uart=1
+
+  5. 把sd卡插入小派
+
+  6. 在linux平台下，用minicom连上小派
+
+  7. 小派亮绿灯表示在boot，并且一闪一闪，然后熄灭
+
+  8. 登录用户名pi，密码raspberry
+
+- 烧写实验用的镜像的步骤
+  1. 格式化sd卡
+  2. 把5个文件复制到sd卡
+  3. 把sd卡插入小派
+  4. minicom无反应，无回显之类的
+
+
 
 #### to do list
 ##### 确定要移植的文件清单
@@ -68,11 +96,7 @@ makefile 暂时不知道改哪。
 交叉编译工具链，应该是include.mk，里面有一个
 `CROSS_COMPILE   := /usr/local/gcc-linaro-7.2.1-2017.11-x86_64_aarch64-elf/bin/aarch64-elf-`
 我觉得应该改成自己的aarch64-elf的路径。
-首先下载一下交叉编译器吧，win应该可以下载lab0的内核编译器。mac就自行安装一个。指导书提供了github地址。
-```
-brew install wget
-```
-然后把aarch64的脚本拖进终端。
+
 
 ##### 修改链接脚本 link script
 暂时还没想好怎么改。这是目前的：
